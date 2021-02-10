@@ -1,10 +1,10 @@
 import PySimpleGUI as sg
 import matplotlib.pyplot as plt
-from PIL import Image,ImageDraw 
+from PIL import Image
 from math import floor
 import io
 import base64
-import yoloooo
+# import yoloooo
 
 # Set window's theme
 sg.theme('TealMono')
@@ -48,7 +48,15 @@ layout = [[sg.Slider(range=(1,0),
                     key='-slider_one-',
                     size=(23,20),
                     enable_events=True),
-            sg.Image(data=ctb('car5crop1.jpg',(600,400)),key='-IMAGE-'),
+
+            # sg.Image(data=ctb('car5crop1.jpg',(600,400)),key='-IMAGE-'),
+
+            sg.Graph(canvas_size=(600, 400),
+                    graph_bottom_left=(0, 400),
+                    graph_top_right=(600, 0),
+                    key="graph",
+                    enable_events=True,
+                    drag_submits=True),
 
             sg.Slider(range=(1,0),
                     default_value=0.5,
@@ -59,7 +67,7 @@ layout = [[sg.Slider(range=(1,0),
                     enable_events=True)],
 
         [sg.Button('Commit change',size=(15,1),key='-commit-'),
-            sg.Checkbox('Frame',key='-frame-')],
+            sg.Checkbox('Frame',enable_events=True,key='-frame-')],
 
         [sg.Button('Run',size=(15,1),disabled=True,key='-run-'),
             sg.Checkbox('Image pass-through',disabled=True,key='-image_pass-'),
@@ -71,40 +79,45 @@ layout = [[sg.Slider(range=(1,0),
 # Create the window
 window = sg.Window('Test', layout)
 
+window.Finalize()
+
+graph = window.Element("graph")
+
+graph.draw_image(data = ctb('car5crop1.jpg',(600,400)),location = (0,0))
+
 # Display and interact with the Window using an Event Loop
 while True:
     event, values = window.read()
+
+    y1 = floor(values['-slider_one-']*400)
+    y2 = floor(values['-slider_two-']*400)
+
     # See if window was closed
     if event == sg.WINDOW_CLOSED:
         break
+
+    if event == '-frame-':
+        if values['-frame-']:
+            frame = []
+            for i in range(6):
+                # frame.append(graph.draw_line((600*i/5,0),(600*i/5,400), color='red', width = 5))
+                frame.append(graph.draw_rectangle((600*i/5,y1),(600*i/5,y2), line_color='red', line_width = 5))
+        else:
+            try:
+                for id in frame:
+                    graph.delete_figure(id)
+            except:
+                pass
 
     if event == '-commit-':
         if values['-slider_one-'] == values['-slider_two-']:
             sg.popup_error("Two slider can't be same number",title="Error")
             continue
-
-        img = Image.open('car5crop1.jpg')
-        cur_width, cur_height = img.size
-        newImg = ImageDraw.Draw(img)
-        y1 = floor(values['-slider_one-']*cur_height)
-        y2 = floor(values['-slider_two-']*cur_height)
-        newImg.line([(0,y1),(cur_width,y1)],width=5)
-        newImg.line([(0,y2),(cur_width,y2)],width=5)
-
-        if values['-frame-']:
-            for i in range(1,5):
-                newImg.line([(cur_width*i/5,0),(cur_width*i/5,cur_height)],width=5)
-
-        grid_img = img
-
-        bio = io.BytesIO()
-        img.save(bio, format="PNG")
-        window['-IMAGE-'].update(data=ctb(bio.getvalue(),(600,400)))
+        
         window['-run-'].update(disabled=False)
         window['-image_pass-'].update(disabled=False)
         window['-perf_monitor-'].update(disabled=False)
         window['-perf_text-'].update('')
-
         window['-commit-'].update(disabled=True)
 
     if event == '-run-':
@@ -128,12 +141,34 @@ while True:
         plt.show(block=False)
 
     if event == '-slider_one-' or event == '-slider_two-':
+        try:
+            for id in line:
+                graph.delete_figure(id)
+            for id in frame:
+                graph.delete_figure(id)
+        except:
+            pass
+
+        line = []
+        line.append(graph.draw_line((0,y1),(600,y1), color='red', width = 5))
+        line.append(graph.draw_line((0,y2),(600,y2), color='red', width = 5))
+
+        if values['-frame-']:
+            frame = []
+            for i in range(6):
+                # frame.append(graph.draw_line((600*i/5,0),(600*i/5,400), color='red', width = 5))
+                frame.append(graph.draw_rectangle((600*i/5,y1),(600*i/5,y2), line_color='red', line_width = 5))
+        else:
+            try:
+                for id in frame:
+                    graph.delete_figure(id)
+            except:
+                pass
         
         window['-run-'].update(disabled=True)
         window['-image_pass-'].update(disabled=True)
         window['-perf_monitor-'].update(disabled=True)
         window['-commit-'].update(disabled=False)
-
         window['-visualize-'].update(disabled=True)
 
 # Finish up by removing from the screen
