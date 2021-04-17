@@ -69,7 +69,7 @@ layout = [[sg.Slider(range=(1,0),
         [sg.Button('Commit change',size=(15,1),key='-commit-'),
             sg.Checkbox('Frame',enable_events=True,key='-frame-')],
 
-        [sg.Button('Run',size=(15,1),disabled=True,key='-run-'),
+        [sg.Button('Run',size=(15,2),disabled=True,key='-run-'),
             sg.Checkbox('Image pass-through',disabled=True,key='-image_pass-'),
             sg.Checkbox('Performance monitoring',disabled=True,key='-perf_monitor-'),
             sg.Text(size=(25,1),key='-perf_text-')],
@@ -155,9 +155,8 @@ while True:
 
         if values['-frame-']:
             frame = []
-            for i in range(6):
-                # frame.append(graph.draw_line((600*i/5,0),(600*i/5,400), color='red', width = 5))
-                frame.append(graph.draw_rectangle((600*i/5,y1),(600*i/5,y2), line_color='red', line_width = 5))
+            for i in range(5):
+                frame.append(graph.draw_rectangle((600*i/5,y1),(600*(i+1)/5,y2), line_color='red', line_width = 5))
         else:
             try:
                 for id in frame:

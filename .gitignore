@@ -1,2 +1,5 @@
 
 yolov4.weights
+__pycache__/yoloooo.cpython-39.pyc
+.gitignore
+.vscode/settings.json
